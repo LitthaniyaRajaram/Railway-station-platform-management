@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Railway Booking System</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+}
+
+body{
+    background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+    url('https://images.unsplash.com/photo-1474487548417-781cb71495f3') no-repeat center center/cover;
+    color:white;
+}
+
+/* NAVBAR */
+.navbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 40px;
+    background:#0f172a;
+    flex-wrap:wrap;
+}
+
+.navbar h1{
+    color:#38bdf8;
+}
+
+.nav-links{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+}
+
+.nav-links a{
+    color:white;
+    text-decoration:none;
+}
+
+/* CONTAINER */
+.container{
+    width:75%;
+    margin:60px auto;
+    background:#1e293b;
+    padding:30px;
+    border-radius:12px;
+}
+
+/* GRID */
+.form-grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:15px;
+}
+
+input{
+    padding:10px;
+    border-radius:6px;
+    border:none;
+    width:100%;
+}
+
+/* ✅ RETURN SECTION (FIXED POSITION) */
+.return-box{
+    grid-column: 3 / 4; /* sits under date column */
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.return-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+}
+
+/* BUTTON */
+.search-btn{
+    grid-column: span 3;
+    padding:12px;
+    background:#0ea5e9;
+    border:none;
+    border-radius:6px;
+    color:white;
+    cursor:pointer;
+}
+
+/* RESULTS */
+.results{
+    display:none;
+    margin-top:30px;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:500px;
+}
+
+th, td{
+    padding:10px;
+    border:1px solid #334155;
+    text-align:center;
+}
+
+.book-btn{
+    background:#22c55e;
+    border:none;
+    padding:6px 10px;
+    color:white;
+    cursor:pointer;
+}
+
+/* FOOTER */
+.footer{
+    text-align:center;
+    padding:15px;
+    margin-top:50px;
+    background:#0f172a;
+}
+
+/* TABLET */
+@media(max-width:900px){
+    .container{
+        width:90%;
+    }
+
+    .form-grid{
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .return-box{
+        grid-column: span 2;
+    }
+
+    .search-btn{
+        grid-column: span 2;
+    }
+}
+
+/* MOBILE */
+@media(max-width:600px){
+
+    .navbar{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+    }
+
+    .container{
+        width:95%;
+        padding:20px;
+    }
+
+    .form-grid{
+        grid-template-columns: 1fr;
+    }
+
+    .return-box{
+        grid-column: span 1;
+    }
+
+    .search-btn{
+        grid-column: span 1;
+    }
+
+    h2{
+        font-size:20px;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+    <h1>RailEase</h1>
+    <div class="nav-links">
+        <a href="main.html">Home</a>
+        <a href="ticket.html">My Bookings</a>
+        <a href="#">Help</a>
+        <a href="login.html">Login</a>
+    </div>
+</div>
+
+<div class="container">
+    <h2>Search Train Availability</h2>
+
+    <div class="form-grid">
+        <input type="text" id="from" placeholder="From Station">
+        <input type="text" id="to" placeholder="To Station">
+        <input type="date" id="date">
+
+        <!-- ✅ RETURN UNDER DATE -->
+        <div class="return-box">
+            <div class="return-top">
+                <input type="checkbox" id="returnCheck" onclick="toggleReturn()">
+                <label for="returnCheck">Return Ticket</label>
+            </div>
+
+            <input type="date" id="returnDate" style="display:none;">
+        </div>
+
+        <button class="search-btn" onclick="showTrains()">Search Trains</button>
+    </div>
+
+    <div class="results" id="trainResults">
+        <table>
+            <thead>
+                <tr>
+                    <th>Train No</th>
+                    <th>Train Name</th>
+                    <th>Platform No</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="trainBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="footer">
+    © 2026 RailEase
+</div>
+
+<script>
+
+// Platform data
+const platformData = {
+    "12641": 3,
+    "16101": 5
+};
+
+function showTrains(){
+    let from = document.getElementById("from").value;
+    let to = document.getElementById("to").value;
+    let date = document.getElementById("date").value;
+    let returnChecked = document.getElementById("returnCheck").checked;
+    let returnDate = document.getElementById("returnDate").value;
+
+    if(!from || !to || !date){
+        alert("Please fill all fields");
+        return;
+    }
+
+    if(returnChecked && !returnDate){
+        alert("Please select return date");
+        return;
+    }
+
+    let table = `
+        <tr>
+            <td>12641</td>
+            <td>Superfast Express</td>
+            <td>${platformData["12641"]}</td>
+            <td><button class="book-btn" onclick="bookTrain()">Book</button></td>
+        </tr>
+        <tr>
+            <td>16101</td>
+            <td>Chennai Mail</td>
+            <td>${platformData["16101"]}</td>
+            <td><button class="book-btn" onclick="bookTrain()">Book</button></td>
+        </tr>
+    `;
+
+    document.getElementById("trainBody").innerHTML = table;
+    document.getElementById("trainResults").style.display = "block";
+}
+
+function toggleReturn(){
+    let check = document.getElementById("returnCheck");
+    let returnDate = document.getElementById("returnDate");
+
+    returnDate.style.display = check.checked ? "block" : "none";
+}
+
+function bookTrain(){
+    window.location.href = "train.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Queue Platform System</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#0b1d3a;
+    color:white;
+    text-align:center;
+}
+
+/* INPUT + BUTTON */
+input,button{
+    padding:10px;
+    margin:10px;
+    border-radius:6px;
+    border:none;
+}
+
+button{
+    background:#0ea5e9;
+    color:white;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0284c7;
+}
+
+/* PLATFORM STATUS */
+.platform-box{
+    background:#1e293b;
+    margin:10px auto;
+    padding:15px;
+    width:50%;
+    border-radius:8px;
+    font-size:18px;
+    box-shadow:0 0 10px rgba(0,0,0,0.4);
+}
+
+/* CONTAINERS */
+.container{
+    display:flex;
+    justify-content:space-around;
+    flex-wrap:wrap;
+}
+
+.box{
+    width:30%;
+    background:#1e293b;
+    padding:20px;
+    border-radius:10px;
+}
+
+/* CARD */
+.card{
+    background:#334155;
+    padding:10px;
+    margin:10px;
+    border-radius:8px;
+}
+
+/* MESSAGE STYLE */
+.msg{
+    width:350px;
+    margin:15px auto;
+    padding:12px;
+    border-radius:10px;
+    font-weight:bold;
+    animation:pop 0.4s ease;
+}
+
+.success{background:#22c55e;}
+.error{background:#ef4444;}
+.warning{background:#f59e0b;}
+.info{background:#38bdf8;}
+
+@keyframes pop{
+    from{transform:scale(0.8);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+}
+</style>
+</head>
+
+<body>
+
+<h1>🚆 Platform Queue Management</h1>
+
+<input id="train_name" placeholder="Train Name">
+<input id="train_no" placeholder="Train No">
+
+<br>
+
+<button onclick="addTrain()">Add Train</button>
+<button onclick="assignPlatform()">Assign Next Train</button>
+<button onclick="clearQueue()">Clear</button>
+
+<div id="message"></div>
+
+<h2>Platform Status</h2>
+<div id="platforms"></div>
+
+<div class="container">
+
+<div class="box">
+<h2>Waiting</h2>
+<div id="waiting"></div>
+</div>
+
+<div class="box">
+<h2>Assigned</h2>
+<div id="assigned"></div>
+</div>
+
+<div class="box">
+<h2>Departed</h2>
+<div id="departed"></div>
+</div>
+
+</div>
+
+<script>
+
+/* 🎯 MESSAGE */
+function showMessage(text,type="info"){
+    document.getElementById("message").innerHTML =
+    `<div class="msg ${type}">${text}</div>`;
+}
+
+/* LOAD DATA */
+function loadData() {
+    fetch("get_data.php")
+    .then(res => res.json())
+    .then(response => {
+
+        let data = response.trains;
+        let platforms = response.platforms;
+
+        let waitingHTML = "";
+        let assignedHTML = "";
+        let departedHTML = "";
+
+        // 🚉 PLATFORM STATUS
+        document.getElementById("platforms").innerHTML = `
+            <div class="platform-box">🚉 Platform 1 → ${platforms[1]}</div>
+            <div class="platform-box">🚉 Platform 2 → ${platforms[2]}</div>
+            <div class="platform-box">🚉 Platform 3 → ${platforms[3]}</div>
+        `;
+
+        data.forEach(train => {
+
+            let card = `
+            <div class="card">
+                <b>${train.train_name}</b><br>
+                Train No: ${train.train_no}<br>
+                Platform: ${train.platform_no ?? '-'}<br><br>
+
+                ${train.status === 'assigned' ? 
+                    `<button onclick="depart(${train.id})">Depart</button>` : ''}
+            </div>
+            `;
+
+            if(train.status === "waiting") waitingHTML += card;
+            else if(train.status === "assigned") assignedHTML += card;
+            else departedHTML += card;
+
+        });
+
+        document.getElementById("waiting").innerHTML = waitingHTML;
+        document.getElementById("assigned").innerHTML = assignedHTML;
+        document.getElementById("departed").innerHTML = departedHTML;
+
+    });
+}
+
+/* ADD TRAIN */
+function addTrain(){
+    let name = document.getElementById("train_name").value;
+    let no = document.getElementById("train_no").value;
+
+    if(name=="" || no==""){
+        showMessage("⚠ Enter train details","warning");
+        return;
+    }
+
+    fetch("add_train.php", {
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`train_name=${name}&train_no=${no}`
+    })
+    .then(res=>res.text())
+    .then(msg=>{
+
+        if(msg.includes("QUEUED")){
+            showMessage("🚦 All 3 platforms occupied! Train added to Queue","error");
+        }else{
+            showMessage(`🚆 Train ${name} added successfully`,"success");
+        }
+
+        loadData();
+
+        document.getElementById("train_name").value="";
+        document.getElementById("train_no").value="";
+    });
+}
+
+/* ASSIGN */
+function assignPlatform(){
+ fetch("assign_platform.php")
+ .then(res=>res.text())
+ .then(msg=>{
+
+    if(msg.includes("FULL")){
+        showMessage("🚫 All platforms full! Train stays in queue","error");
+    } else {
+        showMessage("✅ Train assigned to platform","success");
+    }
+
+    loadData();
+ });
+}
+
+/* 🚫 FIFO DEPART FIX */
+function depart(id){
+
+    let assignedCards = document.querySelectorAll("#assigned .card");
+
+    if(assignedCards.length === 0){
+        showMessage("⚠ No trains to depart","warning");
+        return;
+    }
+
+    let firstButton = assignedCards[0].querySelector("button");
+    let firstId = firstButton.getAttribute("onclick").match(/\d+/)[0];
+
+    if(id != firstId){
+        showMessage("🚫 Follow Queue! First train must depart first","error");
+        return;
+    }
+
+    fetch("depart_train.php",{
+        method:"POST",
+        headers:{"Content-Type":"application/x-www-form-urlencoded"},
+        body:`id=${id}`
+    }).then(()=>{
+        showMessage("👋 Train departed successfully","info");
+        loadData();
+    });
+}
+
+/* CLEAR */
+function clearQueue(){
+ fetch("clear_queue.php").then(()=>{
+    showMessage("🧹 System cleared","warning");
+    loadData();
+ });
+}
+
+setInterval(loadData,1000);
+loadData();
+
+</script>
+
+</body>
+</html>

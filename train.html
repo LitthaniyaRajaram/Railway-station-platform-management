@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Train Seat Booking</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color:white;
+    padding:20px;
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+/* Filter */
+.filter-box{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+select{
+    padding:10px;
+    border-radius:6px;
+    border:none;
+}
+
+/* Container */
+.coach-container{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:20px;
+}
+
+/* Coach */
+.coach{
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border:1px solid rgba(255,255,255,0.1);
+    padding:15px;
+    border-radius:12px;
+    width:320px;
+}
+
+/* Title */
+.coach-title{
+    text-align:center;
+    margin-bottom:10px;
+    background:#0ea5e9;
+    padding:6px;
+    border-radius:6px;
+    font-size:14px;
+}
+
+/* Row */
+.row{
+    display:flex;
+    align-items:center;
+    margin-bottom:6px;
+    justify-content:center;
+}
+
+/* Aisle */
+.aisle{ width:20px; }
+
+/* Side gap */
+.side-gap{ width:10px; }
+
+/* Seat */
+.seat{
+    width:40px;
+    height:40px;
+    margin:2px;
+    border-radius:6px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:9px;
+    cursor:pointer;
+}
+
+/* Seat states */
+.available{ background:#22c55e; }
+.booked{ background:#ef4444; cursor:not-allowed; }
+.selected{ background:#facc15; color:black; }
+
+.available:hover{
+    transform:scale(1.1);
+}
+
+/* Berth label */
+.berth{
+    font-size:8px;
+    font-weight:bold;
+}
+
+/* Legend */
+.legend{
+    text-align:center;
+    margin-top:20px;
+}
+
+/* Button */
+.confirm-btn{
+    display:block;
+    margin:30px auto;
+    padding:12px 30px;
+    background:#0ea5e9;
+    border:none;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+/* 📱 TABLET */
+@media(max-width:900px){
+    .coach{
+        width:280px;
+    }
+}
+
+/* 📱 MOBILE */
+@media(max-width:600px){
+
+    body{
+        padding:10px;
+    }
+
+    .coach{
+        width:100%;
+    }
+
+    .seat{
+        width:32px;
+        height:32px;
+        font-size:8px;
+    }
+
+    .aisle{ width:15px; }
+    .side-gap{ width:6px; }
+
+    h2{
+        font-size:20px;
+    }
+
+    select{
+        width:100%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h2>Select Your Coach & Seat</h2>
+
+<div class="filter-box">
+<select id="filter" onchange="filterCoaches()">
+    <option value="all">All Coaches</option>
+    <option value="Sleeper">Sleeper</option>
+    <option value="AC 3 Tier">AC 3 Tier</option>
+    <option value="AC 2 Tier">AC 2 Tier</option>
+    <option value="AC First Class">AC First Class</option>
+    <option value="AC Chair Car">AC Chair Car</option>
+    <option value="General">General</option>
+</select>
+</div>
+
+<div class="coach-container" id="coachContainer"></div>
+
+<div class="legend">
+    <span style="color:#22c55e;">■ Available</span>
+    <span style="color:#ef4444;">■ Booked</span>
+    <span style="color:#facc15;">■ Selected</span>
+</div>
+
+<button class="confirm-btn" onclick="confirmBooking()">Confirm Booking</button>
+
+<script>
+
+// FULL coach list
+let coachTypes = [
+    {name:"H1", type:"AC First Class", seats:20},
+    {name:"A1", type:"AC 2 Tier", seats:32},
+    {name:"A2", type:"AC 2 Tier", seats:32},
+    {name:"A3", type:"AC 2 Tier", seats:32},
+    {name:"B1", type:"AC 3 Tier", seats:48},
+    {name:"B2", type:"AC 3 Tier", seats:48},
+    {name:"B3", type:"AC 3 Tier", seats:48},
+    {name:"S1", type:"Sleeper", seats:72},
+    {name:"S2", type:"Sleeper", seats:72},
+    {name:"S3", type:"Sleeper", seats:72},
+    {name:"C1", type:"AC Chair Car", seats:40},
+    {name:"GS1", type:"General", seats:50}
+];
+
+let bookedSeats = {};
+let selectedSeats = [];
+let container = document.getElementById("coachContainer");
+
+// Berth pattern
+let berthMap = ["LB","MB","UB","LB","MB","UB","SL","SU"];
+
+// Random booked seats
+coachTypes.forEach(coach=>{
+    bookedSeats[coach.name]=[];
+    while(bookedSeats[coach.name].length < coach.seats*0.2){
+        let r=Math.floor(Math.random()*coach.seats)+1;
+        if(!bookedSeats[coach.name].includes(r)){
+            bookedSeats[coach.name].push(r);
+        }
+    }
+});
+
+// Create seat
+function createSeat(num, coach, row){
+
+    if(num>coach.seats) return;
+
+    let seat=document.createElement("div");
+    seat.classList.add("seat");
+
+    let berth = berthMap[(num-1)%8];
+
+    seat.innerHTML = `
+        <div>${num}</div>
+        <div class="berth">${berth}</div>
+    `;
+
+    if(bookedSeats[coach.name].includes(num)){
+        seat.classList.add("booked");
+    } else {
+        seat.classList.add("available");
+
+        seat.onclick=function(){
+            let i=selectedSeats.indexOf(seat);
+
+            if(i>-1){
+                selectedSeats.splice(i,1);
+                seat.classList.remove("selected");
+                seat.classList.add("available");
+            } else {
+                if(selectedSeats.length>=6){
+                    alert("Max 6 seats allowed");
+                    return;
+                }
+                selectedSeats.push(seat);
+                seat.classList.remove("available");
+                seat.classList.add("selected");
+            }
+        }
+    }
+
+    row.appendChild(seat);
+}
+
+// Build UI
+coachTypes.forEach(coach=>{
+
+    let coachDiv=document.createElement("div");
+    coachDiv.classList.add("coach");
+
+    let title=document.createElement("div");
+    title.classList.add("coach-title");
+    title.innerText=coach.type+" ("+coach.name+")";
+
+    let seatsPerRow=8;
+
+    for(let i=1;i<=coach.seats;i+=seatsPerRow){
+
+        let row=document.createElement("div");
+        row.classList.add("row");
+
+        for(let j=0;j<3;j++) createSeat(i+j,coach,row);
+
+        let aisle=document.createElement("div");
+        aisle.classList.add("aisle");
+        row.appendChild(aisle);
+
+        for(let j=3;j<6;j++) createSeat(i+j,coach,row);
+
+        let sideGap=document.createElement("div");
+        sideGap.classList.add("side-gap");
+        row.appendChild(sideGap);
+
+        for(let j=6;j<8;j++) createSeat(i+j,coach,row);
+
+        coachDiv.appendChild(row);
+    }
+
+    coachDiv.appendChild(title);
+    container.appendChild(coachDiv);
+});
+
+// Filter
+function filterCoaches(){
+    let val=document.getElementById("filter").value;
+    document.querySelectorAll(".coach").forEach(c=>{
+        let t=c.querySelector(".coach-title").innerText;
+        c.style.display=(val==="all"||t.includes(val))?"block":"none";
+    });
+}
+
+// ✅ Confirm booking → redirect
+function confirmBooking(){
+    if(selectedSeats.length===0){
+        alert("Please select at least one seat");
+        return;
+    }
+
+    alert("Seats booked successfully!");
+
+    // Redirect to payment page
+    window.location.href = "passengerpayment.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Payment Methods</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1920&q=80') no-repeat center center/cover;
+            position: relative;
+            color: white;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: -1;
+        }
+
+        /* CONTAINER */
+        .container{
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        /* HOME BUTTON */
+        .home-btn{
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #0a3d62;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .home-btn:hover{
+            background: #07406d;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        /* GRID LAYOUT */
+        .grid{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            color: black;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            font-size: 18px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .btn {
+            margin-top: 12px;
+            padding: 10px;
+            border: none;
+            background: #2c3e50;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 6px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background: #1a252f;
+        }
+
+        .saved-item {
+            margin-top: 12px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #f9f9f9;
+            font-size: 13px;
+        }
+
+        .remove-btn {
+            margin-top: 8px;
+            padding: 5px 10px;
+            border: none;
+            background: #e74c3c;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background: #c0392b;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: -350px;
+            background: #2ecc71;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: right 0.4s ease;
+            z-index: 9999;
+        }
+
+        .toast.show {
+            right: 20px;
+        }
+
+        .toast.error {
+            background: #e74c3c;
+        }
+
+        /* TABLET */
+        @media (max-width: 900px){
+            .grid{
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* MOBILE */
+        @media (max-width: 600px){
+            .grid{
+                grid-template-columns: 1fr;
+            }
+
+            h1{
+                font-size: 22px;
+            }
+
+            .home-btn{
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<button class="home-btn" onclick="goHome()">🏠 Home</button>
+
+<div class="container">
+
+<h1>🚆 Railway Platform Payment Management</h1>
+
+<div class="grid">
+
+<!-- UPI -->
+<div class="section">
+    <h2>UPI Accounts</h2>
+    <button class="btn" onclick="showForm('upiForm')">+ Add UPI</button>
+
+    <div id="upiForm" style="display:none;">
+        <label>UPI App</label>
+        <select id="upiApp">
+            <option>Google Pay</option>
+            <option>PhonePe</option>
+            <option>Paytm</option>
+        </select>
+
+        <label>UPI ID</label>
+        <input type="text" id="upiId">
+
+        <button class="btn" onclick="addUPI()">Save</button>
+    </div>
+
+    <div id="upiList"></div>
+</div>
+
+<!-- CARD -->
+<div class="section">
+    <h2>Cards</h2>
+    <button class="btn" onclick="showForm('cardForm')">+ Add Card</button>
+
+    <div id="cardForm" style="display:none;">
+        <label>Name</label>
+        <input type="text" id="cardName">
+
+        <label>Number</label>
+        <input type="text" id="cardNumber">
+
+        <label>Expiry</label>
+        <input type="month" id="expiry">
+
+        <button class="btn" onclick="addCard()">Save</button>
+    </div>
+
+    <div id="cardList"></div>
+</div>
+
+<!-- BANK -->
+<div class="section">
+    <h2>Bank</h2>
+    <button class="btn" onclick="showForm('bankForm')">+ Add Bank</button>
+
+    <div id="bankForm" style="display:none;">
+        <label>Name</label>
+        <input type="text" id="accountName">
+
+        <label>Account No</label>
+        <input type="text" id="accountNumber">
+
+        <label>IFSC</label>
+        <input type="text" id="ifsc">
+
+        <button class="btn" onclick="addBank()">Save</button>
+    </div>
+
+    <div id="bankList"></div>
+</div>
+
+</div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+function goHome(){
+    window.location.href = "main.html";
+}
+
+function showForm(id){
+    document.getElementById(id).style.display = "block";
+}
+
+function showToast(msg,type="success"){
+    let t=document.getElementById("toast");
+    t.innerText=msg;
+    t.className="toast show";
+    if(type==="error") t.classList.add("error");
+    setTimeout(()=>{t.className="toast";},3000);
+}
+
+function addUPI(){
+    let id=document.getElementById("upiId").value;
+    if(id==="") return showToast("Enter UPI","error");
+
+    let div=document.createElement("div");
+    div.className="saved-item";
+    div.innerHTML=id+'<br><button class="remove-btn" onclick="this.parentElement.remove()">Remove</button>';
+    document.getElementById("upiList").appendChild(div);
+}
+
+function addCard(){
+    let num=document.getElementById("cardNumber").value;
+    if(num==="") return showToast("Enter card","error");
+
+    let div=document.createElement("div");
+    div.className="saved-item";
+    div.innerHTML="XXXX-"+num.slice(-4);
+    document.getElementById("cardList").appendChild(div);
+}
+
+function addBank(){
+    let acc=document.getElementById("accountNumber").value;
+    if(acc==="") return showToast("Enter account","error");
+
+    let div=document.createElement("div");
+    div.className="saved-item";
+    div.innerHTML=acc;
+    document.getElementById("bankList").appendChild(div);
+}
+</script>
+
+</body>
+</html>

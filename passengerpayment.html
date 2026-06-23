@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Train Booking Payment</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family:'Segoe UI';
+    background:#0f172a;
+    color:white;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:20px;
+    background:#1e293b;
+    border-radius:10px;
+    margin-top:30px;
+}
+
+input,select{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+    border:none;
+    border-radius:6px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#22c55e;
+    border:none;
+    color:white;
+    font-size:16px;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+.payment div{
+    padding:10px;
+    margin:5px;
+    background:#334155;
+    text-align:center;
+    cursor:pointer;
+    border-radius:6px;
+}
+
+.selected{
+    background:#22c55e !important;
+}
+
+.summary{
+    background:#334155;
+    padding:10px;
+    border-radius:6px;
+    margin-bottom:15px;
+}
+
+.passenger{
+    background:#334155;
+    padding:10px;
+    margin-top:10px;
+    border-radius:6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Train Booking</h2>
+
+<div class="summary">
+<p><b>Train :</b> Express 12645</p>
+<p><b>From :</b> Chennai</p>
+<p><b>To :</b> Madurai</p>
+<p><b>Seats :</b> <span id="seats"></span></p>
+<p><b>Total Fare :</b> ₹<span id="fare"></span></p>
+</div>
+
+<h3>Passenger Details</h3>
+<div id="passengers"></div>
+
+<h3>Contact Details</h3>
+<input type="text" id="name" placeholder="Account Name">
+<input type="text" id="phone" placeholder="Phone">
+<input type="email" id="email" placeholder="Email">
+
+<h3>Payment Method</h3>
+
+<div class="payment">
+<div onclick="selectPay(this)">UPI</div>
+<div onclick="selectPay(this)">Card</div>
+<div onclick="selectPay(this)">Net Banking</div>
+</div>
+
+<button onclick="pay()">Confirm & Pay</button>
+
+</div>
+
+<script>
+
+/* GET SEATS */
+let seats = JSON.parse(localStorage.getItem("selectedSeats")) || [];
+document.getElementById("seats").innerText = seats.join(", ");
+
+/* FARE */
+let price = 200;
+let total = seats.length * price;
+document.getElementById("fare").innerText = total;
+
+/* PASSENGERS */
+let passengerDiv = document.getElementById("passengers");
+
+seats.forEach((seat,i)=>{
+passengerDiv.innerHTML += `
+<div class="passenger">
+<h4>Passenger ${i+1} (Seat ${seat})</h4>
+<input type="text" placeholder="Passenger Name">
+<input type="number" placeholder="Age">
+<select>
+<option>Male</option>
+<option>Female</option>
+<option>Other</option>
+</select>
+</div>
+`;
+});
+
+/* ACCOUNT */
+let account = JSON.parse(localStorage.getItem("account"));
+if(account){
+document.getElementById("name").value = account.name;
+document.getElementById("phone").value = account.phone;
+document.getElementById("email").value = account.email;
+}
+
+/* PAYMENT METHOD */
+let method="";
+
+function selectPay(el){
+document.querySelectorAll(".payment div")
+.forEach(d=>d.classList.remove("selected"));
+
+el.classList.add("selected");
+method = el.innerText;
+}
+
+/* ✅ FINAL PAYMENT FUNCTION */
+function pay(){
+
+let name=document.getElementById("name").value;
+let phone=document.getElementById("phone").value;
+
+if(name=="" || phone=="" || method==""){
+alert("Please fill all details");
+return;
+}
+
+/* GENERATE PNR */
+let pnr="PNR"+Math.floor(Math.random()*1000000);
+
+/* SAVE BOOKING */
+let booking={
+pnr:pnr,
+seats:seats,
+amount:total,
+payment:method,
+name:name
+};
+
+localStorage.setItem("booking",JSON.stringify(booking));
+
+/* ✅ SUCCESS MESSAGE */
+alert("Payment Successful! 🎉");
+
+/* ✅ REDIRECT */
+setTimeout(()=>{
+    window.location.href="ticket.html";
+},1000);
+
+}
+
+</script>
+
+</body>
+</html>

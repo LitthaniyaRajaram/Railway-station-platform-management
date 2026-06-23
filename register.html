@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account | RailEase</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+body{
+min-height:100vh;
+background:
+linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)),
+url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957') no-repeat center center/cover;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:20px;
+}
+
+.register-box{
+width:800px;
+background:rgba(255,255,255,0.95);
+border-radius:16px;
+padding:30px;
+box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+
+.register-box h2{
+text-align:center;
+color:#0a3d62;
+margin-bottom:10px;
+}
+
+.register-box p{
+text-align:center;
+font-size:14px;
+color:#555;
+margin-bottom:20px;
+}
+
+.form-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.input-group{
+display:flex;
+flex-direction:column;
+}
+
+.input-group label{
+font-size:13px;
+font-weight:600;
+}
+
+.input-group input, select{
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-top:5px;
+}
+
+.input-group input:focus, select:focus{
+border-color:#0a3d62;
+outline:none;
+}
+
+.input-group small{
+font-size:11px;
+color:#888;
+margin-top:3px;
+}
+
+.full{
+grid-column: span 2;
+}
+
+button{
+width:100%;
+padding:12px;
+border:none;
+border-radius:8px;
+background:#0a3d62;
+color:white;
+font-size:15px;
+font-weight:600;
+cursor:pointer;
+}
+
+button:hover{
+background:#07406d;
+}
+
+.login-link{
+text-align:center;
+margin-top:15px;
+font-size:13px;
+}
+
+.login-link a{
+color:#0a3d62;
+font-weight:600;
+text-decoration:none;
+}
+
+footer{
+text-align:center;
+margin-top:15px;
+font-size:12px;
+color:#666;
+}
+
+/* MOBILE RESPONSIVE */
+@media(max-width:768px){
+.register-box{
+width:100%;
+padding:20px;
+}
+.form-grid{
+grid-template-columns:1fr;
+}
+.full{
+grid-column: span 1;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="register-box">
+
+<h2>📝 Create Account</h2>
+<p>Register for smart railway services</p>
+
+<form action="register.php" method="POST">
+
+<div class="form-grid">
+
+<div class="input-group">
+<label>First Name</label>
+<input type="text" name="fname" required>
+</div>
+
+<div class="input-group">
+<label>Last Name</label>
+<input type="text" name="lname" required>
+</div>
+
+<div class="input-group">
+<label>Email</label>
+<input type="email" name="email" placeholder="example@gmail.com" required>
+</div>
+
+<div class="input-group">
+<label>Phone Number</label>
+<input type="tel" name="phone" pattern="[0-9]{10}" maxlength="10" placeholder="10 digit number" required>
+<small>Must be 10 digits</small>
+</div>
+
+<div class="input-group">
+<label>Gender</label>
+<select name="gender" required>
+<option value="">Select</option>
+<option>Male</option>
+<option>Female</option>
+</select>
+</div>
+
+<div class="input-group">
+<label>Date of Birth</label>
+<input type="date" name="dob" required>
+</div>
+
+<div class="input-group">
+<label>Username</label>
+<input type="text" name="username" required>
+</div>
+
+<div class="input-group">
+<label>Password</label>
+<input type="password" name="password" id="password" maxlength="10" required>
+<small>Max 10 characters</small>
+</div>
+
+<div class="input-group">
+<label>Confirm Password</label>
+<input type="password" id="confirm" maxlength="10" required>
+</div>
+
+<div class="input-group full">
+<button type="submit">Create Account</button>
+</div>
+
+</div>
+
+</form>
+
+<div class="login-link">
+Already have an account? <a href="login.html">Login</a>
+</div>
+
+<footer>
+© 2026 RailEase | Registration System
+</footer>
+
+</div>
+
+<script>
+document.querySelector("form").addEventListener("submit", function(e){
+
+let pass = document.getElementById("password").value;
+let confirm = document.getElementById("confirm").value;
+let phone = document.querySelector("input[name='phone']").value;
+
+if(pass.length > 10){
+alert("Password cannot exceed 10 characters");
+e.preventDefault();
+}
+
+if(phone.length !== 10){
+alert("Phone number must be exactly 10 digits");
+e.preventDefault();
+}
+
+if(pass !== confirm){
+alert("Passwords do not match!");
+e.preventDefault();
+}
+
+});
+</script>
+
+</body>
+</html>
